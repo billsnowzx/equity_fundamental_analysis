@@ -41,6 +41,18 @@ Top-N reporting after screening:
 python -m src.orchestration.run_batch_analysis --watchlist sample_us_watchlist --provider json-directory --provider-data-dir data/fixtures --top-n-reports 1 --output-root outputs/watchlist_batch
 ```
 
+Score and red-flag gated reporting:
+
+```powershell
+python -m src.orchestration.run_batch_analysis --watchlist sample_us_watchlist --provider live --minimum-score 70 --max-red-flags 1 --output-root outputs/live_watchlist
+```
+
+Label-gated reporting:
+
+```powershell
+python -m src.orchestration.run_batch_analysis --watchlist sample_us_watchlist --provider live --report-labels "high-quality compounder,good business, too expensive" --output-root outputs/live_watchlist
+```
+
 5. Save outputs under `outputs/` and keep the ranked batch summary first in the response.
 6. After the run, summarize:
    - ranked tickers with label and score

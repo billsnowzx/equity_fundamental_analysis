@@ -1,10 +1,11 @@
-﻿"""Batch stock analysis entry point."""
+"""Batch stock analysis entry point."""
 
 from __future__ import annotations
 
 import argparse
 import csv
 import json
+import logging
 from pathlib import Path
 from typing import Any
 
@@ -12,6 +13,8 @@ import pandas as pd
 
 from src.orchestration.service import (
     build_batch_summary_rows,
+    classify_runtime_failure,
+    determine_report_eligibility,
     persist_company_analysis_outputs,
     prepare_company_analysis,
     render_batch_summary_markdown,
@@ -24,6 +27,7 @@ from src.shared.schemas import AnalysisRequest, CompanyProfile
 
 DEFAULT_WATCHLIST_DIR = Path("config") / "watchlists"
 WATCHLIST_SUFFIXES = [".csv", ".tsv", ".json", ".txt", ".lst", ".tickers"]
+LOGGER = logging.getLogger(__name__)
 
 
 def run_batch_analysis(
@@ -34,12 +38,18 @@ def run_batch_analysis(
     provider_backend: str | None = None,
     provider_data_dir: str | Path | None = None,
     top_n_reports: int | None = None,
+    minimum_score: float | None = None,
+    max_red_flags: int | None = None,
+    report_labels: list[str] | None = None,
 ) -> dict[str, Any]:
     """Run analysis for multiple tickers and persist a ranked batch summary."""
 
     if top_n_reports is not None and top_n_reports < 0:
         raise ValueError("top_n_reports must be zero or greater.")
+    if max_red_flags is not None and max_red_flags < 0:
+        raise ValueError("max_red_flags must be zero or greater.")
 
+    allowed_labels = _normalize_report_labels(report_labels)
     runtime = provider_runtime or build_provider_runtime(
         backend=provider_backend,
         data_dir=provider_data_dir,
@@ -58,6 +68,14 @@ def run_batch_analysis(
             request = AnalysisRequest(company=company, output_root=stock_output_root)
             analysis_context = prepare_company_analysis(request, runtime)
             result = summarize_company_analysis(request, analysis_context)
+            report_eligible, report_skip_reason = determine_report_eligibility(
+                result,
+                minimum_score=minimum_score,
+                max_red_flags=max_red_flags,
+                allowed_labels=allowed_labels,
+            )
+            result["report_eligible"] = report_eligible
+            result["report_skip_reason"] = report_skip_reason
             results.append(result)
             successful_analyses.append(
                 {
@@ -68,19 +86,26 @@ def run_batch_analysis(
                 }
             )
         except Exception as exc:  # noqa: BLE001
+            failure_category, error_message = classify_runtime_failure(exc)
+            LOGGER.warning("Batch analysis failed for %s: %s", ticker.upper(), error_message)
             results.append(
                 {
                     "ticker": ticker.upper(),
                     "company_name": ticker.upper(),
                     "status": "failed",
+                    "failure_category": failure_category,
                     "overall_label": None,
                     "overall_score": None,
+                    "share_price": None,
                     "price_to_earnings": None,
                     "ev_to_sales": None,
                     "fcf_yield": None,
                     "red_flag_count": None,
                     "screen_rank": None,
+                    "report_eligible": False,
                     "report_generated": False,
+                    "report_skip_reason": "screen_failed",
+                    "artifact_root": None,
                     "report_path": None,
                     "scorecard_csv": None,
                     "scorecard_json": None,
@@ -89,7 +114,7 @@ def run_batch_analysis(
                     "charts_dir": None,
                     "report_dir": None,
                     "scorecard_dir": None,
-                    "error": str(exc),
+                    "error": error_message,
                 }
             )
 
@@ -100,15 +125,21 @@ def run_batch_analysis(
     for rank, item in enumerate(ranked_successes, start=1):
         item["result"]["screen_rank"] = rank
 
+    eligible_report_targets = [item for item in ranked_successes if item["result"]["report_eligible"]]
     if top_n_reports is None:
-        report_targets = ranked_successes
+        report_targets = eligible_report_targets
     else:
-        report_targets = ranked_successes[:top_n_reports]
+        report_targets = eligible_report_targets[:top_n_reports]
 
-    for item in report_targets:
-        artifacts = persist_company_analysis_outputs(item["request"], item["analysis_context"])
-        item["result"].update({name: str(path) for name, path in artifacts.items()})
-        item["result"]["report_generated"] = True
+    generated_tickers = {item["ticker"] for item in report_targets}
+    for item in ranked_successes:
+        if item["ticker"] in generated_tickers:
+            artifacts = persist_company_analysis_outputs(item["request"], item["analysis_context"])
+            item["result"].update({name: str(path) for name, path in artifacts.items()})
+            item["result"]["report_generated"] = True
+            item["result"]["report_skip_reason"] = None
+        elif item["result"]["report_eligible"] and top_n_reports is not None:
+            item["result"]["report_skip_reason"] = f"outside_top_n:{top_n_reports}"
 
     summary = build_batch_summary_rows(results)
     summary_csv = root / "batch_summary.csv"
@@ -126,6 +157,7 @@ def run_batch_analysis(
         "stocks_root": stocks_root,
         "report_limit": top_n_reports,
         "reports_generated": len(report_targets),
+        "eligible_reports": len(eligible_report_targets),
     }
 
 
@@ -157,7 +189,24 @@ def build_parser() -> argparse.ArgumentParser:
         "--top-n-reports",
         type=int,
         default=None,
-        help="Optional report cap. Screen every ticker, but only write full report artifacts for the top N successes.",
+        help="Optional report cap. Screen every ticker, but only write full report artifacts for the top N eligible successes.",
+    )
+    parser.add_argument(
+        "--minimum-score",
+        type=float,
+        default=None,
+        help="Optional minimum score required before generating a full report artifact.",
+    )
+    parser.add_argument(
+        "--max-red-flags",
+        type=int,
+        default=None,
+        help="Optional maximum triggered red-flag count allowed before generating a full report artifact.",
+    )
+    parser.add_argument(
+        "--report-labels",
+        default=None,
+        help="Optional comma-separated overall labels that are allowed to receive full reports.",
     )
     parser.add_argument(
         "--output-root",
@@ -180,6 +229,7 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> None:
     """CLI entry point for running batch analysis."""
 
+    logging.basicConfig(level=logging.WARNING)
     parser = build_parser()
     args = parser.parse_args()
     tickers = _parse_tickers(args.tickers, args.ticker_file, sectors=args.sectors, watchlist=args.watchlist)
@@ -192,8 +242,12 @@ def main() -> None:
         provider_backend=args.provider,
         provider_data_dir=args.provider_data_dir,
         top_n_reports=args.top_n_reports,
+        minimum_score=args.minimum_score,
+        max_red_flags=args.max_red_flags,
+        report_labels=_parse_report_labels(args.report_labels),
     )
     _print_ranked_summary(result["summary"])
+    print(f"eligible_reports: {result['eligible_reports']}")
     print(f"reports_generated: {result['reports_generated']}")
     print(f"batch_summary_csv: {result['summary_csv']}")
     print(f"batch_summary_json: {result['summary_json']}")
@@ -345,6 +399,19 @@ def _parse_sector_filter(sectors: str | None) -> set[str]:
     return {sector.strip().lower() for sector in sectors.split(",") if sector.strip()}
 
 
+def _parse_report_labels(report_labels: str | None) -> list[str] | None:
+    if not report_labels:
+        return None
+    values = [label.strip() for label in report_labels.split(",") if label.strip()]
+    return values or None
+
+
+def _normalize_report_labels(report_labels: list[str] | None) -> set[str]:
+    if not report_labels:
+        return set()
+    return {label.strip().lower() for label in report_labels if label.strip()}
+
+
 def _print_ranked_summary(summary: pd.DataFrame) -> None:
     if summary.empty:
         print("No batch results were produced.")
@@ -358,8 +425,11 @@ def _print_ranked_summary(summary: pd.DataFrame) -> None:
             "overall_label",
             "overall_score",
             "red_flag_count",
+            "report_eligible",
             "report_generated",
+            "report_skip_reason",
             "report_path",
+            "failure_category",
             "error",
         ]
         if column in summary.columns
@@ -369,6 +439,3 @@ def _print_ranked_summary(summary: pd.DataFrame) -> None:
 
 if __name__ == "__main__":
     main()
-
-
-

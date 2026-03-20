@@ -37,6 +37,8 @@ $chart_list_markdown
 ## Output Files
 - Scorecard CSV: `$scorecard_csv`
 - Scorecard JSON: `$scorecard_json`
+- Red Flags CSV: `$red_flags_csv`
+- Metric Snapshot CSV: `$metric_snapshot_csv`
 - Report: `$report_path`
 """
 )
@@ -67,8 +69,9 @@ def generate_markdown_report(
         chart_list_markdown=context.get("chart_list_markdown", "No charts generated."),
         scorecard_csv=context.get("scorecard_csv", "n/a"),
         scorecard_json=context.get("scorecard_json", "n/a"),
+        red_flags_csv=context.get("red_flags_csv", "n/a"),
+        metric_snapshot_csv=context.get("metric_snapshot_csv", "n/a"),
         report_path=report_path,
     )
     report_path.write_text(content)
     return report_path
-

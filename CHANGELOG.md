@@ -7,7 +7,14 @@ The format is based on Keep a Changelog, and this project uses semantic version 
 ## [Unreleased]
 
 ### Added
-- Placeholder section for future release notes.
+- Batch screening filters for `--minimum-score`, `--max-red-flags`, and `--report-labels`.
+- Stable failure categories in batch summaries and single-stock CLI exits.
+- Expanded artifact metadata in batch summaries, including artifact-root and scorecard path fields.
+
+### Changed
+- Batch report generation now applies `--top-n-reports` after report eligibility filters instead of before them.
+- Markdown reports now list red-flag and metric-snapshot artifact files alongside the report and scorecard outputs.
+- README and operator documentation now include report-gating workflows and common failure guidance.
 
 ## [v0.1.0] - 2026-03-20
 

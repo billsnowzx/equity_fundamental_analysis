@@ -88,6 +88,8 @@ China A-share live run:
 python -m src.orchestration.run_analysis --ticker 600519 --provider akshare --output-root outputs/china_akshare
 ```
 
+Single-stock failures are classified before exit. Typical categories are `configuration`, `data`, `network`, `provider`, and `unexpected`.
+
 ## Batch Workflows
 
 Direct ticker list:
@@ -126,7 +128,23 @@ Top-N report generation after screening:
 python -m src.orchestration.run_batch_analysis --watchlist sample_us_watchlist --provider json-directory --provider-data-dir data/fixtures --top-n-reports 1 --output-root outputs/watchlist_batch
 ```
 
-When `--top-n-reports` is set, every ticker is still screened and ranked, but only the highest-ranked successful names receive full report artifacts.
+Score-gated report generation:
+
+```powershell
+python -m src.orchestration.run_batch_analysis --watchlist sample_us_watchlist --provider live --minimum-score 70 --output-root outputs/live_watchlist
+```
+
+Red-flag and label-gated report generation:
+
+```powershell
+python -m src.orchestration.run_batch_analysis --watchlist sample_us_watchlist --provider live --max-red-flags 1 --report-labels "high-quality compounder,good business, too expensive" --output-root outputs/live_watchlist
+```
+
+Batch behavior:
+- every ticker is still screened and ranked
+- `--minimum-score`, `--max-red-flags`, and `--report-labels` only control full artifact generation
+- `--top-n-reports` applies after report eligibility filters
+- failed tickers remain in the batch summary with a failure category and message
 
 ## Watchlists
 
@@ -150,6 +168,12 @@ Batch outputs:
 - `outputs/batch_summary.json`
 - `outputs/batch_summary.md`
 
+Batch summary fields now include:
+- ranking fields such as `screen_rank`
+- report control fields such as `report_eligible`, `report_generated`, and `report_skip_reason`
+- artifact paths such as `artifact_root`, `report_path`, `scorecard_csv`, and `red_flags_csv`
+- failure metadata such as `failure_category` and `error`
+
 Per-stock outputs:
 - `outputs/stocks/<ticker>/reports/`
 - `outputs/stocks/<ticker>/charts/`
@@ -160,6 +184,14 @@ Single-stock outputs use the same report, chart, and scorecard structure under t
 ## Repo-Local Skill
 
 Use `.agents/skills/batch-stock-analysis/` when you want Codex to run the repository workflow without repeating the repo instructions in every prompt.
+
+## Common Failures
+
+- `configuration`: provider mode or data-directory configuration is missing or invalid
+- `data`: required annual statements or market inputs are missing for a ticker
+- `network`: the provider timed out or disconnected during a live request
+- `provider`: the upstream provider returned an unusable response
+- `unexpected`: an unclassified runtime failure that still needs investigation
 
 ## Current Limitations
 

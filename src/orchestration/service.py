@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import socket
 from pathlib import Path
 from typing import Any
 
@@ -17,7 +18,7 @@ from src.analysis.scoring import score_company
 from src.analysis.thesis_builder import build_investment_thesis
 from src.analysis.valuation import analyze_valuation
 from src.processing.normalize_financials import normalize_annual_financials
-from src.providers.errors import ProviderDataError
+from src.providers.errors import ProviderConfigurationError, ProviderDataError, ProviderError
 from src.providers.factory import ProviderRuntime
 from src.reporting.charts import generate_charts
 from src.reporting.report_generator import generate_markdown_report
@@ -150,6 +151,7 @@ def summarize_company_analysis(
         "ticker": request.company.ticker,
         "company_name": request.company.company_name,
         "status": "success",
+        "failure_category": None,
         "overall_label": overall_row["summary"],
         "overall_score": float(overall_row["score"]),
         "red_flag_count": red_flag_count,
@@ -158,7 +160,10 @@ def summarize_company_analysis(
         "ev_to_sales": _optional_float(valuation_row.get("ev_to_sales")),
         "fcf_yield": _optional_float(valuation_row.get("fcf_yield")),
         "screen_rank": None,
+        "report_eligible": True,
         "report_generated": False,
+        "report_skip_reason": None,
+        "artifact_root": None,
         "report_path": None,
         "scorecard_csv": None,
         "scorecard_json": None,
@@ -216,10 +221,13 @@ def persist_company_analysis_outputs(
             "chart_list_markdown": "\n".join(f"- `{path.name}`" for path in chart_paths),
             "scorecard_csv": scorecard_csv,
             "scorecard_json": scorecard_json,
+            "red_flags_csv": red_flags_csv,
+            "metric_snapshot_csv": metric_snapshot_csv,
         },
     )
 
     return {
+        "artifact_root": output_root,
         "report_path": report_path,
         "scorecard_csv": scorecard_csv,
         "scorecard_json": scorecard_json,
@@ -275,12 +283,71 @@ def render_batch_summary_markdown(summary: pd.DataFrame) -> str:
         "ev_to_sales",
         "fcf_yield",
         "red_flag_count",
+        "report_eligible",
         "report_generated",
+        "report_skip_reason",
+        "artifact_root",
         "report_path",
+        "scorecard_csv",
+        "red_flags_csv",
+        "failure_category",
         "error",
     ]
     existing_columns = [column for column in columns if column in summary.columns]
     return _markdown_table(summary[existing_columns])
+
+
+def classify_runtime_failure(exc: Exception) -> tuple[str, str]:
+    """Convert runtime exceptions into stable categories and operator-facing messages."""
+
+    if isinstance(exc, ProviderConfigurationError):
+        return "configuration", str(exc)
+    if isinstance(exc, ProviderDataError):
+        return "data", str(exc)
+    if isinstance(exc, (TimeoutError, socket.timeout)):
+        return "network", f"Timed out while loading provider data: {exc}"
+
+    exception_name = type(exc).__name__
+    module_name = type(exc).__module__
+    message = str(exc)
+    message_lower = message.lower()
+
+    if isinstance(exc, ProviderError):
+        return "provider", message
+    if "remote disconnected" in message_lower:
+        return "network", f"Provider connection closed unexpectedly: {message}"
+    if "connection" in exception_name.lower() or "connection" in message_lower:
+        return "network", f"Provider network error: {message}"
+    if "http" in exception_name.lower() or "request" in module_name.lower():
+        return "provider", f"Provider request failed: {message}"
+
+    return "unexpected", f"{exception_name}: {message}" if message else exception_name
+
+
+def determine_report_eligibility(
+    result: dict[str, Any],
+    *,
+    minimum_score: float | None = None,
+    max_red_flags: int | None = None,
+    allowed_labels: set[str] | None = None,
+) -> tuple[bool, str | None]:
+    """Determine whether a successful screen qualifies for full report generation."""
+
+    if result.get("status") != "success":
+        return False, "screen_failed"
+
+    if minimum_score is not None and float(result["overall_score"]) < minimum_score:
+        return False, f"score_below_minimum:{minimum_score:g}"
+
+    if max_red_flags is not None and int(result["red_flag_count"]) > max_red_flags:
+        return False, f"red_flags_above_maximum:{max_red_flags}"
+
+    if allowed_labels:
+        normalized_label = str(result["overall_label"]).strip().lower()
+        if normalized_label not in allowed_labels:
+            return False, "label_not_selected"
+
+    return True, None
 
 
 def _build_metric_snapshot(metric_frames: dict[str, pd.DataFrame]) -> pd.DataFrame:

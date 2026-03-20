@@ -1,7 +1,7 @@
-Ôªø# documentation.md
+# documentation.md
 
 ## Current status
-Batch analysis skill, provider-backed batch orchestration, live adapter, ticker-file workflows, reusable watchlists, top-N reporting, Yahoo Finance live validation, and AkShare A-share support are complete.
+Batch analysis now supports report gating by score, red-flag count, and label, along with clearer live-provider failure classification and more consistent artifact-path reporting.
 
 The repository now supports:
 - single-stock analysis through a configured provider runtime
@@ -12,8 +12,10 @@ The repository now supports:
 - mainland China A-share runs through an AkShare-backed provider runtime
 - sector-filtered ticker-file workflows for larger stock universes
 - reusable named watchlists under `config/watchlists/`
-- screening-first top-N report generation that only writes full artifacts for the highest-ranked successful names
+- screening-first top-N report generation that only writes full artifacts for the highest-ranked eligible names
 - calibrated red-flag thresholds that avoid flagging immaterial margin drift as deterioration
+- batch report gating through `--minimum-score`, `--max-red-flags`, and `--report-labels`
+- explicit failure categories for single-stock exits and batch summary rows
 
 ## Milestones
 - [x] Scaffold repo
@@ -37,6 +39,8 @@ The repository now supports:
 - [x] Ticker-file and sector-list workflows
 - [x] Reusable watchlists
 - [x] Top-N report generation
+- [x] Batch report gating filters
+- [x] Failure classification improvements
 - [x] Live batch validation
 - [x] Tests passing
 
@@ -50,7 +54,7 @@ The repository now supports:
 - The first concrete general live adapter is Yahoo Finance, exposed as both `live` and `yfinance`
 - The mainland China backend is `akshare`, currently targeted at Shanghai and Shenzhen A-shares
 - `json-directory` remains the deterministic sample backend for offline and validation runs
-- Batch outputs are screening-first and still generate full reports for every successfully screened stock unless `--top-n-reports` is set
+- Batch outputs are screening-first and still generate full reports for every eligible screened stock unless `--top-n-reports` is set
 - One failed ticker does not abort an otherwise successful batch
 - The repo-local skill stays procedural and does not duplicate application business logic
 - `--ticker-file` supports plain text, CSV/TSV, JSON lists, and JSON sector maps
@@ -59,6 +63,8 @@ The repository now supports:
 - Margin deterioration now requires a broad or material decline, not tiny dual-margin noise
 - AkShare share-capital values are normalized by a share-count multiplier so A-share valuation ratios are on the right scale
 - Thesis text avoids unit-specific free-cash-flow wording because provider scales are not normalized to one display unit
+- Report gating is separate from screening so the batch summary always contains the full ranked universe even when some names do not receive artifact generation
+- Failure summaries use stable categories: `configuration`, `data`, `network`, `provider`, and `unexpected`
 
 ## How to run
 Install dependencies:
@@ -91,16 +97,22 @@ Run a watchlist with live Yahoo Finance data:
 python -m src.orchestration.run_batch_analysis --watchlist sample_us_watchlist --provider live --output-root outputs/live_watchlist
 ```
 
-Run a China watchlist with AkShare:
-
-```powershell
-python -m src.orchestration.run_batch_analysis --watchlist china_consumer_watchlist --provider akshare --output-root outputs/china_batch
-```
-
 Run a deterministic watchlist batch with top-N reports:
 
 ```powershell
 python -m src.orchestration.run_batch_analysis --watchlist sample_us_watchlist --provider json-directory --provider-data-dir data/fixtures --top-n-reports 1 --output-root outputs/watchlist_batch
+```
+
+Run a deterministic watchlist batch with score and red-flag gates:
+
+```powershell
+python -m src.orchestration.run_batch_analysis --watchlist sample_us_watchlist --provider json-directory --provider-data-dir data/fixtures --minimum-score 76 --max-red-flags 1 --output-root outputs/watchlist_filtered
+```
+
+Run a label-filtered batch:
+
+```powershell
+python -m src.orchestration.run_batch_analysis --watchlist sample_us_watchlist --provider live --report-labels "high-quality compounder,good business, too expensive" --output-root outputs/live_watchlist
 ```
 
 ## Generated outputs
@@ -129,6 +141,12 @@ Per-stock files:
 - `outputs/china_akshare/charts/`
 - `outputs/china_akshare/scorecards/`
 
+Batch summary columns now include:
+- ranking fields: `screen_rank`
+- report-control fields: `report_eligible`, `report_generated`, `report_skip_reason`
+- artifact fields: `artifact_root`, `report_path`, `scorecard_csv`, `red_flags_csv`
+- failure fields: `failure_category`, `error`
+
 Repo-local skill:
 - `.agents/skills/batch-stock-analysis/SKILL.md`
 
@@ -139,11 +157,13 @@ Watchlist directory:
 - `config/watchlists/china_consumer_watchlist.csv`
 
 ## Validation
-- `python -m pytest` passes with 37 tests
+- `python -m pytest` passes with 46 tests
 - `python -m src.orchestration.run_analysis --ticker MSFT --provider live --output-root outputs` completed successfully
 - `python -m src.orchestration.run_batch_analysis --ticker-file data/fixtures/sample_sector_universe.csv --provider live --output-root outputs/live_batch` completed successfully
 - `python -m src.orchestration.run_batch_analysis --watchlist sample_us_watchlist --provider json-directory --provider-data-dir data/fixtures --top-n-reports 1 --output-root outputs/watchlist_batch` completed successfully
-- `python -m src.orchestration.run_analysis --ticker 600519 --provider akshare --output-root outputs/china_akshare` completed successfully`r`n- `python -m src.orchestration.run_batch_analysis --watchlist china_consumer_watchlist --provider akshare --output-root outputs/china_batch` is implemented but the live validation attempt was blocked by upstream `RemoteDisconnected` responses from an AkShare source endpoint in this environment
+- `python -m src.orchestration.run_batch_analysis --watchlist sample_us_watchlist --provider json-directory --provider-data-dir data/fixtures --minimum-score 76 --max-red-flags 1 --output-root outputs/watchlist_filtered` completed successfully
+- `python -m src.orchestration.run_analysis --ticker 600519 --provider akshare --output-root outputs/china_akshare` completed successfully
+- `python -m src.orchestration.run_batch_analysis --watchlist china_consumer_watchlist --provider akshare --output-root outputs/china_batch` is implemented but the live validation attempt was blocked by upstream `RemoteDisconnected` responses from an AkShare source endpoint in this environment
 - `quick_validate.py` reports the batch skill is valid
 
 ## Current sample results
@@ -155,8 +175,12 @@ Deterministic watchlist batch with top-1 reporting:
 - `MSFT`: `good business, too expensive`, score `77.04`, red flags `0`, full report generated
 - `TSLA`: `good business, too expensive`, score `74.84`, red flags `3`, report skipped by `--top-n-reports 1`
 
+Deterministic watchlist batch with score/red-flag gating:
+- `MSFT`: `good business, too expensive`, score `77.04`, red flags `0`, full report generated
+- `TSLA`: `good business, too expensive`, score `74.84`, red flags `3`, report skipped by `score_below_minimum:76`
+
 Live China A-share single-stock run:
-- `600519` / `Ë¥µÂ∑ûËåÖÂè∞`: `high-quality compounder`, score `87.36`, red flags `1`
+- `600519` / `πÛ÷›√©Ã®`: `high-quality compounder`, score `87.36`, red flags `1`
 
 ## Known issues
 - The Yahoo Finance path depends on Yahoo response shape and network availability.
@@ -165,8 +189,7 @@ Live China A-share single-stock run:
 - The repo-local skill was validated structurally, but not forward-tested through subagents because no explicit delegation request was made.
 
 ## Next steps
-1. Add peer-multiple support for AkShare-backed China analysis.
-2. Harden live-provider normalization against ticker-specific AkShare and Yahoo Finance gaps.
-3. Add ranking presets or score cutoffs on top of `--top-n-reports`.
-4. Add one more live provider backend behind `src/providers/` for redundancy.
-
+1. Add one more live provider backend behind `src/providers/` for redundancy.
+2. Add ranking presets on top of the new score and red-flag gates.
+3. Extend the batch summary with optional percentile or bucket views for larger universes.
+4. Add portfolio-level aggregation after the single-name pipeline is stable.

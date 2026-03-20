@@ -5,7 +5,7 @@ from __future__ import annotations
 import argparse
 from pathlib import Path
 
-from src.orchestration.service import resolve_company_profile, run_company_analysis
+from src.orchestration.service import classify_runtime_failure, resolve_company_profile, run_company_analysis
 from src.providers.factory import ProviderRuntime, build_provider_runtime
 from src.shared.schemas import AnalysisRequest
 
@@ -57,22 +57,26 @@ def main() -> None:
 
     parser = build_parser()
     args = parser.parse_args()
-    runtime = build_provider_runtime(backend=args.provider, data_dir=args.provider_data_dir)
-    company = resolve_company_profile(
-        ticker=args.ticker,
-        provider_runtime=runtime,
-        company_name=args.company_name,
-        exchange=args.exchange,
-        currency=args.currency,
-    )
-    artifacts = run_analysis(
-        AnalysisRequest(company=company, output_root=Path(args.output_root)),
-        provider_runtime=runtime,
-    )
+    try:
+        runtime = build_provider_runtime(backend=args.provider, data_dir=args.provider_data_dir)
+        company = resolve_company_profile(
+            ticker=args.ticker,
+            provider_runtime=runtime,
+            company_name=args.company_name,
+            exchange=args.exchange,
+            currency=args.currency,
+        )
+        artifacts = run_analysis(
+            AnalysisRequest(company=company, output_root=Path(args.output_root)),
+            provider_runtime=runtime,
+        )
+    except Exception as exc:  # noqa: BLE001
+        failure_category, error_message = classify_runtime_failure(exc)
+        raise SystemExit(f"{failure_category} error: {error_message}") from exc
+
     for name, path in artifacts.items():
         print(f"{name}: {path}")
 
 
 if __name__ == "__main__":
     main()
-
