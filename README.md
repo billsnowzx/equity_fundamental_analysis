@@ -1,17 +1,42 @@
-﻿# Equity Fundamental Analysis
+# Equity Fundamental Analysis
 
 Modular, provider-agnostic Python tooling for listed-company fundamental analysis.
 
-The repository supports both single-stock analysis and batch stock screening/report generation through provider-backed orchestration.
+The project supports:
+- single-stock analysis
+- batch screening and ranked summaries
+- reusable watchlists
+- US live analysis through Yahoo Finance
+- mainland China A-share analysis through AkShare
+- deterministic fixture-backed runs for testing and development
+
+## What It Produces
+
+For each successful stock run, the pipeline can generate:
+- a markdown report
+- scorecard CSV and JSON files
+- red-flag and metric snapshot CSV files
+- chart images
+
+For batch runs, the pipeline also writes:
+- `batch_summary.csv`
+- `batch_summary.json`
+- `batch_summary.md`
 
 ## Repository Layout
 
-- `src/` contains provider adapters, normalization, analysis, reporting, and orchestration
-- `tests/` contains pytest coverage for normalization, metrics, provider runtime, live adapter mapping, batch execution, watchlists, top-N report generation, and AkShare A-share mapping
+- `src/` contains providers, normalization, analysis, scoring, reporting, and orchestration
+- `tests/` contains pytest coverage for metrics, normalization, providers, batch workflows, and report generation
 - `config/watchlists/` contains reusable stock universes for batch runs
-- `data/fixtures/` contains runnable sample JSON data for `json-directory` mode plus sample ticker universes
-- `outputs/` stores generated batch summaries, reports, charts, and scorecards
+- `data/fixtures/` contains deterministic sample provider data and sample ticker universes
+- `outputs/` stores generated summaries, reports, charts, and scorecards
 - `.agents/skills/` contains repo-local Codex skills
+
+## Requirements
+
+- Python 3.11+
+- `pandas` for tabular financial outputs
+- provider-specific packages from `requirements.txt`
 
 ## Setup
 
@@ -25,71 +50,71 @@ python -m pip install -r requirements.txt
 python -m pytest
 ```
 
-## Provider Modes
+## Provider Backends
 
-Supported provider backends:
+Supported provider modes:
+- `json-directory`
 - `live`
 - `yfinance`
 - `akshare`
-- `json-directory`
 
-Current behavior:
-- `live` uses the concrete Yahoo Finance adapter
-- `yfinance` is an explicit alias for the same live adapter
-- `akshare` targets mainland China A-shares through AkShare-backed statement, price, profile, share-capital, and peer-multiple adapters
-- `json-directory` is the runnable sample mode and reads per-ticker JSON files from a configured directory
+Behavior:
+- `json-directory` reads local per-ticker JSON files from a configured directory
+- `live` uses the Yahoo Finance live adapter
+- `yfinance` is an explicit alias for the same Yahoo Finance adapter
+- `akshare` targets mainland China A-shares using AkShare-backed statements, prices, company profiles, shares outstanding, and peer multiples
 
 Environment variables:
 - `EFA_PROVIDER_BACKEND`
 - `EFA_PROVIDER_DATA_DIR`
 
-## Run a Single Stock
+## Quick Start
 
-Sample provider data:
+Fixture-backed Tesla run:
 
 ```powershell
 python -m src.orchestration.run_analysis --ticker TSLA --provider json-directory --provider-data-dir data/fixtures --output-root outputs
 ```
 
-US live provider path:
+US live run:
 
 ```powershell
 python -m src.orchestration.run_analysis --ticker MSFT --provider live --output-root outputs
 ```
 
-China A-share provider path:
+China A-share live run:
 
 ```powershell
 python -m src.orchestration.run_analysis --ticker 600519 --provider akshare --output-root outputs/china_akshare
 ```
 
-## Run a Batch
+## Batch Workflows
 
-Direct tickers:
+Direct ticker list:
 
 ```powershell
 python -m src.orchestration.run_batch_analysis --tickers TSLA,MSFT --provider json-directory --provider-data-dir data/fixtures --output-root outputs
 ```
 
-Ticker-file workflow:
+Ticker file:
 
 ```powershell
 python -m src.orchestration.run_batch_analysis --ticker-file data/fixtures/sample_sector_universe.csv --provider json-directory --provider-data-dir data/fixtures --output-root outputs
 ```
 
-Watchlist workflow:
+Named watchlist:
 
 ```powershell
 python -m src.orchestration.run_batch_analysis --watchlist sample_us_watchlist --provider live --output-root outputs
 ```
 
-China watchlist workflow:
+China watchlist:
 
 ```powershell
 python -m src.orchestration.run_batch_analysis --watchlist china_consumer_watchlist --provider akshare --output-root outputs/china_batch
 ```
 
-Sector-filtered watchlist workflow:
+Sector filter:
 
 ```powershell
 python -m src.orchestration.run_batch_analysis --watchlist sample_sector_watchlist --sectors Technology --provider json-directory --provider-data-dir data/fixtures --output-root outputs
@@ -101,6 +126,25 @@ Top-N report generation after screening:
 python -m src.orchestration.run_batch_analysis --watchlist sample_us_watchlist --provider json-directory --provider-data-dir data/fixtures --top-n-reports 1 --output-root outputs/watchlist_batch
 ```
 
+When `--top-n-reports` is set, every ticker is still screened and ranked, but only the highest-ranked successful names receive full report artifacts.
+
+## Watchlists
+
+Use `config/watchlists/` for reusable stock universes you want to keep outside test fixtures.
+
+Supported watchlist formats:
+- plain text: one ticker per line
+- CSV or TSV: `ticker` or `symbol`, optional `sector`
+- JSON list: strings or objects with `ticker` and optional `sector`
+- JSON sector map: `{ "Technology": ["MSFT", "NVDA"] }`
+
+Sample watchlists:
+- `config/watchlists/sample_us_watchlist.csv`
+- `config/watchlists/sample_sector_watchlist.json`
+- `config/watchlists/china_consumer_watchlist.csv`
+
+## Output Layout
+
 Batch outputs:
 - `outputs/batch_summary.csv`
 - `outputs/batch_summary.json`
@@ -111,33 +155,17 @@ Per-stock outputs:
 - `outputs/stocks/<ticker>/charts/`
 - `outputs/stocks/<ticker>/scorecards/`
 
-When `--top-n-reports` is set, every ticker is still screened and ranked, but only the highest-ranked successful names receive full report/chart/scorecard artifacts.
-
-## Watchlists
-
-Use `config/watchlists/` for reusable universes you want to keep outside development fixtures.
-
-Supported formats:
-- plain text: one ticker per line
-- CSV or TSV: `ticker` or `symbol`, optional `sector`
-- JSON list: strings or objects with `ticker` and optional `sector`
-- JSON sector map: `{ "Technology": ["MSFT", "NVDA"] }`
-
-Sample files:
-- `config/watchlists/sample_us_watchlist.csv`
-- `config/watchlists/sample_sector_watchlist.json`
-- `config/watchlists/china_consumer_watchlist.csv`
+Single-stock outputs use the same report, chart, and scorecard structure under the selected output root.
 
 ## Repo-Local Skill
 
-Use the repo-local skill in `.agents/skills/batch-stock-analysis/` when you want Codex to run the batch workflow without restating the repo instructions each time.
+Use `.agents/skills/batch-stock-analysis/` when you want Codex to run the repository workflow without repeating the repo instructions in every prompt.
 
 ## Current Limitations
 
-- The live adapter depends on Yahoo Finance response shape and network availability.
-- The `akshare` backend is currently tuned for mainland Shanghai and Shenzhen A-shares, not Hong Kong, US ADRs, or a full China-market cross-listing model.
-- AkShare peer multiples are supported when peers are provided explicitly or inferred from the batch watchlist, but live China runs still depend on upstream AkShare source stability.
-- Transcript parsing and annual report parsing remain out of scope.
-- The shipped JSON datasets are deterministic sample data for development and validation, not canonical market feeds.
-- Provider-reported statement units are not normalized to one narrative display unit, so report prose avoids absolute money magnitudes where that would be misleading.
-
+- The Yahoo Finance live adapter depends on upstream response shape and network availability.
+- The `akshare` backend is currently limited to mainland Shanghai and Shenzhen A-shares.
+- China live runs depend on AkShare source stability and endpoint availability.
+- Transcript parsing and annual report PDF parsing are intentionally out of scope.
+- The shipped JSON datasets are deterministic development fixtures, not canonical market feeds.
+- Provider-reported statement units are not normalized to one narrative display unit, so report prose avoids potentially misleading absolute-money narration.
