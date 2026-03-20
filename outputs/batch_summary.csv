@@ -1,2 +1,0 @@
-ticker,status,overall_label,overall_score,price_to_earnings,ev_to_sales,fcf_yield,red_flag_count,report_path,scorecard_csv,error
-MSFT,success,"good business, too expensive",77.03999999999999,41.7627375,14.112150862068965,0.020353071922069286,0,outputs\stocks\msft\reports\msft_analysis_report.md,outputs\stocks\msft\scorecards\msft_scorecard.csv,

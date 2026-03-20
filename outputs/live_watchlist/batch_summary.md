@@ -1,4 +1,0 @@
-| screen_rank | ticker | status | overall_label | overall_score | price_to_earnings | ev_to_sales | fcf_yield | red_flag_count | report_generated | report_path | error |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1 | MSFT | success | good business, too expensive | 75.4400 | 28.5954 | 10.4438 | 0.0246 | 1 | True | outputs\live_watchlist\stocks\msft\reports\msft_analysis_report.md | n/a |
-| 2 | TSLA | success | value trap / governance trap | 50.6000 | 388.4766 | 15.5239 | 0.0042 | 1 | True | outputs\live_watchlist\stocks\tsla\reports\tsla_analysis_report.md | n/a |

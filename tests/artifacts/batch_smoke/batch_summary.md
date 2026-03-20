@@ -1,5 +1,0 @@
-| screen_rank | ticker | status | overall_label | overall_score | price_to_earnings | ev_to_sales | fcf_yield | red_flag_count | report_generated | report_path | error |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 1.0000 | MSFT | success | good business, too expensive | 77.0400 | 41.7627 | 14.1122 | 0.0204 | 0.0000 | True | D:\AI\equity_fundamental_analysis\tests\artifacts\batch_smoke\stocks\msft\reports\msft_analysis_report.md | n/a |
-| 2.0000 | TSLA | success | good business, too expensive | 74.8400 | 98.8444 | 7.3794 | 0.0069 | 3.0000 | True | D:\AI\equity_fundamental_analysis\tests\artifacts\batch_smoke\stocks\tsla\reports\tsla_analysis_report.md | n/a |
-| n/a | BAD | failed | n/a | n/a | n/a | n/a | n/a | n/a | False | n/a | Required provider file is missing: D:\AI\equity_fundamental_analysis\data\fixtures\bad_annual_financials.json |
