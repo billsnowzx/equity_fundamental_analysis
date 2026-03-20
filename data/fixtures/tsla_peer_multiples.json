@@ -1,0 +1,5 @@
+[
+  {"ticker": "BYDDY", "pe": 24.0, "pb": 5.0, "ev_to_ebitda": 14.0, "ev_to_sales": 1.8},
+  {"ticker": "GM", "pe": 6.0, "pb": 0.8, "ev_to_ebitda": 5.5, "ev_to_sales": 0.3},
+  {"ticker": "F", "pe": 7.0, "pb": 1.1, "ev_to_ebitda": 6.2, "ev_to_sales": 0.25}
+]

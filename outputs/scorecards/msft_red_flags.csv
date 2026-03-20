@@ -1,0 +1,7 @@
+flag,triggered,severity,detail
+receivables_growth_faster_than_revenue,True,medium,Receivables growth 22.8% versus revenue growth 14.9%.
+inventory_growth_faster_than_revenue,False,low,Inventory growth -24.7% versus revenue growth 14.9%.
+cfo_below_net_income_for_two_years,False,high,Operating cash flow is below net income in each of the last two fiscal years.
+rising_leverage,False,medium,Debt-to-equity has risen for three consecutive annual observations.
+share_dilution,False,low,Shares outstanding changed by 0.0% versus 2023-12-27.
+margin_deterioration_despite_sales_growth,True,medium,Revenue growth 14.9%; gross margin moved from 69.8% to 68.8%; net margin moved from 36.0% to 36.1%.

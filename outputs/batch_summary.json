@@ -1,0 +1,15 @@
+[
+  {
+    "ticker":"MSFT",
+    "status":"success",
+    "overall_label":"good business, too expensive",
+    "overall_score":77.04,
+    "price_to_earnings":41.7627375,
+    "ev_to_sales":14.1121508621,
+    "fcf_yield":0.0203530719,
+    "red_flag_count":0,
+    "report_path":"outputs\\stocks\\msft\\reports\\msft_analysis_report.md",
+    "scorecard_csv":"outputs\\stocks\\msft\\scorecards\\msft_scorecard.csv",
+    "error":null
+  }
+]

@@ -1,0 +1,16 @@
+{
+  "TSLA": {
+    "ticker": "TSLA",
+    "company_name": "Tesla, Inc.",
+    "exchange": "NASDAQ",
+    "reporting_currency": "USD",
+    "peer_list": ["BYDDY", "GM", "F"]
+  },
+  "MSFT": {
+    "ticker": "MSFT",
+    "company_name": "Microsoft Corporation",
+    "exchange": "NASDAQ",
+    "reporting_currency": "USD",
+    "peer_list": ["AAPL", "GOOGL", "ORCL"]
+  }
+}

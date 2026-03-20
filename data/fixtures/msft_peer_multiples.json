@@ -1,0 +1,5 @@
+[
+  {"ticker": "AAPL", "pe": 32.0, "pb": 45.0, "ev_to_ebitda": 24.0, "ev_to_sales": 8.0},
+  {"ticker": "GOOGL", "pe": 28.0, "pb": 7.0, "ev_to_ebitda": 18.0, "ev_to_sales": 7.0},
+  {"ticker": "ORCL", "pe": 26.0, "pb": 24.0, "ev_to_ebitda": 16.0, "ev_to_sales": 6.0}
+]

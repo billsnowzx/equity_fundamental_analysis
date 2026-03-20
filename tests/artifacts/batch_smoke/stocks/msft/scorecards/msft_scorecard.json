@@ -1,0 +1,58 @@
+[
+  {
+    "category":"revenue",
+    "score":50.0,
+    "summary":"Strong multi-year growth receives the highest weight in the model.",
+    "weight":0.16,
+    "weighted_score":8.0
+  },
+  {
+    "category":"profitability",
+    "score":100.0,
+    "summary":"Margins measure structural business quality and pricing power.",
+    "weight":0.16,
+    "weighted_score":16.0
+  },
+  {
+    "category":"returns",
+    "score":88.0,
+    "summary":"Return ratios reward efficient use of capital and assets.",
+    "weight":0.16,
+    "weighted_score":14.08
+  },
+  {
+    "category":"balance_sheet",
+    "score":90.0,
+    "summary":"Leverage and liquidity determine resilience through weaker cycles.",
+    "weight":0.16,
+    "weighted_score":14.4
+  },
+  {
+    "category":"cashflow",
+    "score":86.0,
+    "summary":"Cash conversion and free cash flow anchor the quality check.",
+    "weight":0.16,
+    "weighted_score":13.76
+  },
+  {
+    "category":"valuation",
+    "score":8.0,
+    "summary":"Valuation is intentionally harsh on expensive equities.",
+    "weight":0.1,
+    "weighted_score":0.8
+  },
+  {
+    "category":"red_flags",
+    "score":100.0,
+    "summary":"Triggered red flags reduce confidence in the headline metrics.",
+    "weight":0.1,
+    "weighted_score":10.0
+  },
+  {
+    "category":"overall",
+    "score":77.04,
+    "summary":"good business, too expensive",
+    "weight":1.0,
+    "weighted_score":77.04
+  }
+]

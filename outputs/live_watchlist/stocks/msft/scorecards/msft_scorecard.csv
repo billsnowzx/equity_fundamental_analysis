@@ -1,0 +1,9 @@
+category,score,summary,weight,weighted_score
+revenue,55.0,Strong multi-year growth receives the highest weight in the model.,0.16,8.8
+profitability,100.0,Margins measure structural business quality and pricing power.,0.16,16.0
+returns,80.0,Return ratios reward efficient use of capital and assets.,0.16,12.8
+balance_sheet,89.0,Leverage and liquidity determine resilience through weaker cycles.,0.16,14.24
+cashflow,80.0,Cash conversion and free cash flow anchor the quality check.,0.16,12.8
+valuation,23.0,Valuation is intentionally harsh on expensive equities.,0.1,2.3000000000000003
+red_flags,85.0,Triggered red flags reduce confidence in the headline metrics.,0.1,8.5
+overall,75.44,"good business, too expensive",1.0,75.44

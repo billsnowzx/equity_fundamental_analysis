@@ -1,0 +1,8 @@
+[
+  {"date": "2019-12-31", "shares_outstanding": 2800},
+  {"date": "2020-12-31", "shares_outstanding": 2870},
+  {"date": "2021-12-31", "shares_outstanding": 2960},
+  {"date": "2022-12-31", "shares_outstanding": 3100},
+  {"date": "2023-12-31", "shares_outstanding": 3180},
+  {"date": "2024-12-31", "shares_outstanding": 3200}
+]

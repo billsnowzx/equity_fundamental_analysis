@@ -1,0 +1,260 @@
+[
+  {
+    "period_end": "2019-12-31",
+    "fiscal_year": 2019,
+    "period_type": "annual",
+    "statement_type": "income_statement",
+    "currency": "USD",
+    "values": {
+      "revenue": 24578,
+      "gross_profit": 4069,
+      "ebitda": 3100,
+      "operating_income": -69,
+      "net_income": -862,
+      "interest_expense": 685
+    }
+  },
+  {
+    "period_end": "2019-12-31",
+    "fiscal_year": 2019,
+    "period_type": "annual",
+    "statement_type": "balance_sheet",
+    "currency": "USD",
+    "values": {
+      "total_assets": 34309,
+      "total_equity": 6618,
+      "current_assets": 12353,
+      "current_liabilities": 10667,
+      "cash_and_equivalents": 6268,
+      "total_debt": 13258,
+      "accounts_receivable": 1324,
+      "inventory": 3552
+    }
+  },
+  {
+    "period_end": "2019-12-31",
+    "fiscal_year": 2019,
+    "period_type": "annual",
+    "statement_type": "cash_flow",
+    "currency": "USD",
+    "values": {
+      "operating_cash_flow": 2405,
+      "capital_expenditures": -1332
+    }
+  },
+  {
+    "period_end": "2020-12-31",
+    "fiscal_year": 2020,
+    "period_type": "annual",
+    "statement_type": "income_statement",
+    "currency": "USD",
+    "values": {
+      "revenue": 31536,
+      "gross_profit": 6630,
+      "ebitda": 5600,
+      "operating_income": 1994,
+      "net_income": 721,
+      "interest_expense": 748
+    }
+  },
+  {
+    "period_end": "2020-12-31",
+    "fiscal_year": 2020,
+    "period_type": "annual",
+    "statement_type": "balance_sheet",
+    "currency": "USD",
+    "values": {
+      "total_assets": 52148,
+      "total_equity": 22225,
+      "current_assets": 26717,
+      "current_liabilities": 14248,
+      "cash_and_equivalents": 19384,
+      "total_debt": 13413,
+      "accounts_receivable": 1886,
+      "inventory": 4101
+    }
+  },
+  {
+    "period_end": "2020-12-31",
+    "fiscal_year": 2020,
+    "period_type": "annual",
+    "statement_type": "cash_flow",
+    "currency": "USD",
+    "values": {
+      "operating_cash_flow": 5943,
+      "capital_expenditures": -3242
+    }
+  },
+  {
+    "period_end": "2021-12-31",
+    "fiscal_year": 2021,
+    "period_type": "annual",
+    "statement_type": "income_statement",
+    "currency": "USD",
+    "values": {
+      "revenue": 53823,
+      "gross_profit": 13606,
+      "ebitda": 9800,
+      "operating_income": 6523,
+      "net_income": 5519,
+      "interest_expense": 371
+    }
+  },
+  {
+    "period_end": "2021-12-31",
+    "fiscal_year": 2021,
+    "period_type": "annual",
+    "statement_type": "balance_sheet",
+    "currency": "USD",
+    "values": {
+      "total_assets": 62131,
+      "total_equity": 30189,
+      "current_assets": 30548,
+      "current_liabilities": 19065,
+      "cash_and_equivalents": 17576,
+      "total_debt": 8873,
+      "accounts_receivable": 1952,
+      "inventory": 5757
+    }
+  },
+  {
+    "period_end": "2021-12-31",
+    "fiscal_year": 2021,
+    "period_type": "annual",
+    "statement_type": "cash_flow",
+    "currency": "USD",
+    "values": {
+      "operating_cash_flow": 11497,
+      "capital_expenditures": -6451
+    }
+  },
+  {
+    "period_end": "2022-12-31",
+    "fiscal_year": 2022,
+    "period_type": "annual",
+    "statement_type": "income_statement",
+    "currency": "USD",
+    "values": {
+      "revenue": 81462,
+      "gross_profit": 20853,
+      "ebitda": 17100,
+      "operating_income": 13832,
+      "net_income": 12556,
+      "interest_expense": 156
+    }
+  },
+  {
+    "period_end": "2022-12-31",
+    "fiscal_year": 2022,
+    "period_type": "annual",
+    "statement_type": "balance_sheet",
+    "currency": "USD",
+    "values": {
+      "total_assets": 82338,
+      "total_equity": 44704,
+      "current_assets": 40917,
+      "current_liabilities": 28748,
+      "cash_and_equivalents": 22185,
+      "total_debt": 5950,
+      "accounts_receivable": 2952,
+      "inventory": 12839
+    }
+  },
+  {
+    "period_end": "2022-12-31",
+    "fiscal_year": 2022,
+    "period_type": "annual",
+    "statement_type": "cash_flow",
+    "currency": "USD",
+    "values": {
+      "operating_cash_flow": 14724,
+      "capital_expenditures": -7198
+    }
+  },
+  {
+    "period_end": "2023-12-31",
+    "fiscal_year": 2023,
+    "period_type": "annual",
+    "statement_type": "income_statement",
+    "currency": "USD",
+    "values": {
+      "revenue": 96773,
+      "gross_profit": 17660,
+      "ebitda": 14500,
+      "operating_income": 8890,
+      "net_income": 15000,
+      "interest_expense": 145
+    }
+  },
+  {
+    "period_end": "2023-12-31",
+    "fiscal_year": 2023,
+    "period_type": "annual",
+    "statement_type": "balance_sheet",
+    "currency": "USD",
+    "values": {
+      "total_assets": 106618,
+      "total_equity": 62634,
+      "current_assets": 49616,
+      "current_liabilities": 31200,
+      "cash_and_equivalents": 29094,
+      "total_debt": 5700,
+      "accounts_receivable": 4020,
+      "inventory": 13626
+    }
+  },
+  {
+    "period_end": "2023-12-31",
+    "fiscal_year": 2023,
+    "period_type": "annual",
+    "statement_type": "cash_flow",
+    "currency": "USD",
+    "values": {
+      "operating_cash_flow": 13256,
+      "capital_expenditures": -8899
+    }
+  },
+  {
+    "period_end": "2024-12-31",
+    "fiscal_year": 2024,
+    "period_type": "annual",
+    "statement_type": "income_statement",
+    "currency": "USD",
+    "values": {
+      "revenue": 105000,
+      "gross_profit": 18300,
+      "ebitda": 15300,
+      "operating_income": 9200,
+      "net_income": 8100,
+      "interest_expense": 160
+    }
+  },
+  {
+    "period_end": "2024-12-31",
+    "fiscal_year": 2024,
+    "period_type": "annual",
+    "statement_type": "balance_sheet",
+    "currency": "USD",
+    "values": {
+      "total_assets": 118000,
+      "total_equity": 68000,
+      "current_assets": 52200,
+      "current_liabilities": 33000,
+      "cash_and_equivalents": 31000,
+      "total_debt": 5200,
+      "accounts_receivable": 4300,
+      "inventory": 15000
+    }
+  },
+  {
+    "period_end": "2024-12-31",
+    "fiscal_year": 2024,
+    "period_type": "annual",
+    "statement_type": "cash_flow",
+    "currency": "USD",
+    "values": {
+      "operating_cash_flow": 15000,
+      "capital_expenditures": -9500
+    }
+  }
+]
